@@ -1,25 +1,13 @@
 import React from 'react';
-import { Link, useHistory } from 'react-router-dom';
-import { register } from '../utils/auth';
+import { Link } from 'react-router-dom';
 
 function Register(props) {
-  const history = useHistory();
   const email = React.useRef();
   const password = React.useRef();
 
   function handleSubmit(e) {
     e.preventDefault();
-    
-    register(password.current.value, email.current.value)
-      .then((res) => {
-        if (res) {
-          props.onEnd(true);          
-        }
-      })
-      .catch((err) => {
-        props.onEnd(false);
-        console.error(`${err} - некорректно заполнено одно из полей`); 
-      })
+    props.onRegister(password.current.value, email.current.value);
   }
   
   return (

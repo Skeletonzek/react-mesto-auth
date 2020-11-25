@@ -1,31 +1,12 @@
 import React from 'react';
-import { useHistory } from 'react-router-dom';
-import { authorize } from '../utils/auth';
 
 function Login(props) {
-  const history = useHistory();
   const email = React.useRef();
   const password = React.useRef();
 
   function handleSubmit(e) {
     e.preventDefault();
-    
-    authorize(password.current.value, email.current.value)
-      .then((res) => {
-        if (res) {
-          props.loggedStatus(email.current.value);
-          history.push('/')
-        }
-      })
-      .catch((err) => {
-        props.onEnd(false);
-        if (err === 400) {
-          console.error(`${err} - не передано одно из полей`);
-        }
-        else {
-          console.error(`${err} - пользователь с email не найден`);
-        }
-      })
+    props.onLogin(password.current.value, email.current.value);
   }
 
   return (

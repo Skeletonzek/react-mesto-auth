@@ -15,6 +15,8 @@ import Login from './Login';
 import InfoTooltip from './InfoTooltip';
 import ProtectedRoute from './ProtectedRoute';
 import { checkToken } from '../utils/auth';
+import { register } from '../utils/auth';
+import { authorize } from '../utils/auth';
 
 function App() {
   const history = useHistory();
@@ -153,12 +155,49 @@ function App() {
 
   function handleAddPlaceSubmit(card) {
     api.postNewCard(card).then((newCard) => {
-      setCards([...cards, newCard]);
+      setCards([newCard, ...cards]);
       closeAllPopups();
     })
       .catch((err) => {
         console.log(err);
       });
+  }
+
+  function handleRegister(password, email) {
+    register(password, email)
+    .then((res) => {
+      if (res) {
+        handleTooltip(true);          
+      }
+    })
+    .catch((err) => {
+      handleTooltip(false); 
+      console.error(`${err} - некорректно заполнено одно из полей`); 
+    })
+  }
+
+  function handleLogin(password, email) {
+    authorize(password, email)
+    .then((res) => {
+      if (res) {
+        loggedStatusYes(email);
+        history.push('/');
+      }
+    })
+    .catch((err) => {
+      handleTooltip(false);
+      if (err === 400) {
+        console.error(`${err} - не передано одно из полей`);
+      }
+      else {
+        console.error(`${err} - пользователь с email не найден`);
+      }
+    })
+  }
+
+  function handleSignOut() {
+    localStorage.removeItem('jwt');
+    loggedStatusNo();
   }
 
   return (
@@ -169,13 +208,13 @@ function App() {
         <EditAvatarPopup isOpen={isEditAvatarPopupOpen} onClose={closeAllPopups} onSubmit={handleUpdateAvatar} />
         <ImagePopup card={selectedCard} onClose={closeAllPopups} />
         <InfoTooltip isOpen={isTooltipOpen} onClose={handleTooltipClose} tooltipStatus={tooltipStatus} />
-        <Header isLogged={loggedIn} email={email} loggedStatus={loggedStatusNo}/>
+        <Header isLogged={loggedIn} email={email} onSignOut={handleSignOut}/>
         <ProtectedRoute path="/" loggedIn={loggedIn} component={Main} cards={cards} onCardLike={handleCardLike} onCardDelete={handleCardDelete} onEditProfile={handleEditProfileClick} onAddPlace={handleAddPlaceClick} onEditAvatar={handleEditAvatarClick} onCardClick={handleCardClick} />
         <Route path="/sign-up"> 
-          <Register onEnd={handleTooltip} tooltipClosed={isTooltipOpen}/>
+          <Register onRegister={handleRegister} />
         </Route>
         <Route path="/sign-in">
-          <Login loggedStatus={loggedStatusYes} onEnd={handleTooltip} />
+          <Login onLogin={handleLogin} />
         </Route>
         <Footer />
       </div>
